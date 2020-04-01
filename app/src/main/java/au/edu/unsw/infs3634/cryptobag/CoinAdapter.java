@@ -7,15 +7,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import au.edu.unsw.infs3634.cryptobag.Entities.Coin;
 
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.List;
 
 public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder> {
     private MainActivity mParentActivity;
-    private ArrayList<Coin> mCoins;
+    private List<Coin> mCoins;
     private boolean mTwoPane;
     private View.OnClickListener mOnClickListener = new View.OnClickListener() {
         @Override
@@ -23,21 +25,21 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
             Coin coin = (Coin) v.getTag();
             if(mTwoPane) {
                 Bundle arguments = new Bundle();
-                arguments.putString(DetailFragment.ARG_ITEM_ID, coin.getSymbol());
+                arguments.putString(DetailFragment.ARG_ITEM_ID, coin.getId());
                 DetailFragment fragment = new DetailFragment();
                 fragment.setArguments(arguments);
                 mParentActivity.getSupportFragmentManager().beginTransaction().replace(R.id.detail_container, fragment).commit();
             } else {
                 Context context = v.getContext();
                 Intent intent = new Intent(context, DetailActivity.class);
-                intent.putExtra(DetailFragment.ARG_ITEM_ID, coin.getSymbol());
+                intent.putExtra(DetailFragment.ARG_ITEM_ID, coin.getId());
                 context.startActivity(intent);
             }
         }
     };
     int c = 0;
 
-    public CoinAdapter(MainActivity parent, ArrayList<Coin> coins, boolean twoPane) {
+    public CoinAdapter(MainActivity parent, List<Coin> coins, boolean twoPane) {
         mParentActivity = parent;
         mCoins = coins;
         mTwoPane = twoPane;
@@ -65,8 +67,10 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
     public void onBindViewHolder(CoinViewHolder holder, int position) {
         Coin coin = mCoins.get(position);
         holder.name.setText(coin.getName());
-        holder.value.setText(NumberFormat.getCurrencyInstance().format(coin.getValue()));
-        holder.change.setText(String.valueOf(coin.getChange1h()) + " %");
+
+        holder.value.setText(NumberFormat.getCurrencyInstance().format(Double.valueOf(coin.getPriceUsd())));
+        holder.change.setText(String.valueOf(coin.getPercentChange24h()) + " %");
+
         holder.itemView.setTag(coin);
         holder.itemView.setOnClickListener(mOnClickListener);
     }
