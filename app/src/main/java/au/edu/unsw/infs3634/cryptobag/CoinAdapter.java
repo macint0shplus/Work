@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+
 import au.edu.unsw.infs3634.cryptobag.Entities.Coin;
 
 import androidx.recyclerview.widget.RecyclerView;
@@ -23,7 +24,7 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
         @Override
         public void onClick(View v) {
             Coin coin = (Coin) v.getTag();
-            if(mTwoPane) {
+            if (mTwoPane) {
                 Bundle arguments = new Bundle();
                 arguments.putString(DetailFragment.ARG_ITEM_ID, coin.getId());
                 DetailFragment fragment = new DetailFragment();
@@ -45,7 +46,7 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
         mTwoPane = twoPane;
     }
 
-    public static class CoinViewHolder extends RecyclerView.ViewHolder  {
+    public static class CoinViewHolder extends RecyclerView.ViewHolder {
         public TextView name, value, change;
 
         public CoinViewHolder(View v) {
@@ -75,10 +76,17 @@ public class CoinAdapter extends RecyclerView.Adapter<CoinAdapter.CoinViewHolder
         holder.itemView.setOnClickListener(mOnClickListener);
     }
 
+
     // Return the size of your dataset (invoked by the layout manager)
     @Override
     public int getItemCount() {
         return mCoins.size();
+    }
+
+    public void setCoins(List<Coin> coins) {
+        mCoins.clear();
+        mCoins.addAll(coins);
+        notifyDataSetChanged();
     }
 
 }

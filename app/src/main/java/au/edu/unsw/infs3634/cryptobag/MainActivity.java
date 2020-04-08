@@ -8,13 +8,23 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.gson.Gson;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import au.edu.unsw.infs3634.cryptobag.Entities.Coin;
 import au.edu.unsw.infs3634.cryptobag.Entities.CoinLoreResponse;
+import retrofit2.Retrofit;
+import retrofit2.Retrofit.Builder;
+import retrofit2.Response;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+import java.io.IOException;
 
 public class MainActivity extends AppCompatActivity {
     private boolean mTwoPane;
+    private CoinAdapter mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,11 +40,40 @@ public class MainActivity extends AppCompatActivity {
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(this);
         mRecyclerView.setLayoutManager(mLayoutManager);
 
-        Gson gson = new Gson();
-        CoinLoreResponse response = gson.fromJson(CoinLoreResponse.json, CoinLoreResponse.class);
-        List<Coin> coins = response.getData();
+//        Gson gson = new Gson();
+//        CoinLoreResponse response = gson.fromJson(CoinLoreResponse.json, CoinLoreResponse.class);
+//        List<Coin> coins = response.getData();
 
-        RecyclerView.Adapter mAdapter = new CoinAdapter(this, coins, mTwoPane);
+
+        mAdapter = new CoinAdapter(this, new ArrayList<Coin>(), mTwoPane);
         mRecyclerView.setAdapter(mAdapter);
+
+
+            // Retrofit interface to parse the retreived json
+            Retrofit retrofit = new Retrofit.Builder().baseUrl("https://api.coinlore.net/").addConverterFactory(GsonConverterFactory.create()).build();
+
+            // get serviceand all object or request
+            CoinService service = retrofit.create(CoinService.class);
+            Call<CoinLoreResponse> coinsCall = service.getCoins();
+
+            // execute network request
+
+            coinsCall.enqueue(new Callback<CoinLoreResponse>() {
+                @Override
+                public void onResponse(Call<CoinLoreResponse> call, Response<CoinLoreResponse> response) {
+                    List<Coin> coins = response.body().getData();
+                    mAdapter.setCoins(coins);
+                }
+
+                @Override
+                public void onFailure(Call<CoinLoreResponse> call, Throwable t) {
+
+                }
+            });
+
+
+
     }
+
+
 }
