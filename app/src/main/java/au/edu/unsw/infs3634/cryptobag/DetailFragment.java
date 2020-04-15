@@ -2,6 +2,7 @@ package au.edu.unsw.infs3634.cryptobag;
 
 import android.content.Intent;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -35,41 +36,43 @@ public class DetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         if (getArguments().containsKey(ARG_ITEM_ID)) {
-            // Gson gson = new Gson();
-            //   CoinLoreResponse response = gson.fromJson(CoinLoreResponse.json, CoinLoreResponse.class);
-            //   List<Coin> coins = response.getData();
+            new GetCoinTask().execute();
+        }
+    }
 
+    private class GetCoinTask extends AsyncTask<Void, Void, List<Coin>> {
 
-            // Retrofit interface to parse the retreived json
-            Retrofit retrofit = new Retrofit.Builder().baseUrl("https://api.coinlore.net/").addConverterFactory(GsonConverterFactory.create()).build();
+        @Override
+        protected List<Coin> doInBackground(Void... voids) {
+            try {
+                Retrofit retrofit = new Retrofit.Builder().baseUrl("https://api.coinlore.net/").addConverterFactory(GsonConverterFactory.create()).build();
 
-            // get serviceand all object or request
-            CoinService service = retrofit.create(CoinService.class);
-            Call<CoinLoreResponse> coinsCall = service.getCoins();
+                // get serviceand all object or request
+                CoinService service = retrofit.create(CoinService.class);
+                Call<CoinLoreResponse> coinsCall = service.getCoins();
 
-            // execute network request
-            coinsCall.enqueue(new Callback<CoinLoreResponse>() {
-                @Override
-                public void onResponse(Call<CoinLoreResponse> call, Response<CoinLoreResponse> response) {
-                    List<Coin> coins = response.body().getData();
-                    for (Coin coin : coins) {
-                        if (coin.getId().equals(getArguments().getString(ARG_ITEM_ID))) {
-                            mCoin = coin;
-                        }
-                    }
+                Response<CoinLoreResponse> coinResonse = coinsCall.execute();
+                List<Coin> coins = coinResonse.body().getData();
+                return coins;
+
+            } catch (IOException e) {
+                System.out.println("Failed to do AysncTask!");
+                e.printStackTrace();
+                return null;
+            }
+
+        }
+
+        @Override
+        protected void onPostExecute(List<Coin> coins) {
+            for (Coin coin : coins) {
+                if (coin.getId().equals(getArguments().getString(ARG_ITEM_ID))) {
+                    mCoin = coin;
                     updateUI();
                     DetailFragment.this.getActivity().setTitle(mCoin.getName());
                 }
-
-                @Override
-                public void onFailure(Call<CoinLoreResponse> call, Throwable t) {
-
-                }
-            });
-
-
+            }
         }
     }
 
@@ -80,7 +83,6 @@ public class DetailFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         updateUI();
-
 
 
         return rootView;
