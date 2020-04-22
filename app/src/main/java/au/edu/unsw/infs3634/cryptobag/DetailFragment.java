@@ -11,6 +11,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.fragment.app.Fragment;
+import androidx.room.Room;
 
 import com.google.gson.Gson;
 
@@ -19,6 +20,7 @@ import java.text.NumberFormat;
 import java.util.List;
 
 import au.edu.unsw.infs3634.cryptobag.Entities.Coin;
+import au.edu.unsw.infs3634.cryptobag.Entities.CoinDatabase;
 import au.edu.unsw.infs3634.cryptobag.Entities.CoinLoreResponse;
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -29,6 +31,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class DetailFragment extends Fragment {
     public static final String ARG_ITEM_ID = "item_id";
     private Coin mCoin;
+    private CoinDatabase mDb;
 
     public DetailFragment() {
     }
@@ -36,8 +39,28 @@ public class DetailFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mDb = Room.databaseBuilder(getContext(), CoinDatabase.class, "coin-database").build();
+
+
         if (getArguments().containsKey(ARG_ITEM_ID)) {
-            new GetCoinTask().execute();
+            //new GetCoinTask().execute();
+            new GetCoinDbTask().execute(getArguments().getString(ARG_ITEM_ID));
+        }
+    }
+
+    private class GetCoinDbTask extends AsyncTask<String, Void, Coin> {
+
+        @Override
+        protected Coin doInBackground(String... ids) {
+
+            return mDb.coinDao().getCoin(ids[0]);
+        }
+
+        @Override
+        protected void onPostExecute(Coin coin) {
+            mCoin = coin;
+            updateUI();
+
         }
     }
 
